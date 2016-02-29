@@ -16,6 +16,9 @@ public class World : MonoBehaviour
     {
         drawBorder();
         grid = new SqaureGrid(width, height);
+        assembleForests(grid);
+        assembleWalls(grid);
+        assembleRoads(grid);
     }
 
     void assembleWalls(SqaureGrid grid)
