@@ -11,6 +11,7 @@ public class Enemy_Controller : MonoBehaviour
     GameObject player;
     GameObject world;
     SqaureGrid grid;
+    AStar pathfinder;
     LinkedList<Location> route;
     LinkedListNode<Location> routePos;
     Vector3 previousPos;
@@ -18,28 +19,39 @@ public class Enemy_Controller : MonoBehaviour
     bool isDone;
     int width, height;
 
+    bool isPatrolForward=true;
+
     float spottingTimer;
     //AI Attributes
     int ID;
     float health;
     int status; //0=normal, 1=alert, 2=combat
-    int task; //0=patrolling, 1=guarding, 2=chasing, 3=attacking, 4=fleeing
+    public int task; //0=patrolling, 1=guarding, 2=chasing, 3=attacking, 4=fleeing
     static float weaponRange;
     public float speed;
-	// Use this for initialization
-	void Start ()
+    public Vector2 VECpatrolStart, VECpatrolEnd;
+    Location patrolStart, patrolEnd;
+    // Use this for initialization
+    void Start ()
     {
         status = 0;
-        task = 1;
-        player = GameObject.FindGameObjectWithTag("Player");
-        world = GameObject.FindGameObjectWithTag("World");
+        
+        player = GameObject.FindGameObjectWithTag(Tags.Player);
+        world = GameObject.FindGameObjectWithTag(Tags.World);
         grid = world.gameObject.GetComponent<World>().grid;
         width = world.GetComponent<World>().width;
         height = world.GetComponent<World>().height;
-        drawBorder();
+        
         isDone = false;
 
-      
+        //convert vector to location
+        patrolStart = new Location((int)VECpatrolStart.x, (int)VECpatrolStart.y);
+        patrolEnd = new Location((int)VECpatrolEnd.x, (int)VECpatrolEnd.y);
+
+        if (task == 0)
+        {
+            patrol(patrolStart, patrolEnd);
+        }
     }
 	
 	// Update is called once per frame
@@ -50,7 +62,7 @@ public class Enemy_Controller : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (task == 2 && !isDone)
+        if ((task == 2 || task ==0) && !isDone)
         {
             distance += speed * Time.deltaTime;
             Move();
@@ -63,6 +75,11 @@ public class Enemy_Controller : MonoBehaviour
         {
             task = 1;
             status = 0;
+        }
+        else if(task == 0 && isDone)
+        {
+            patrol(patrolStart,patrolEnd);
+            isDone = false;
         }
     }
 
@@ -85,6 +102,27 @@ public class Enemy_Controller : MonoBehaviour
         }
     }
 
+    void patrol(Location start, Location end)
+    {
+        task = 0;
+        if (isPatrolForward)
+        {
+            pathfinder = new AStar(grid, start, end);
+            route = pathfinder.createRoute(grid, pathfinder, start, end);
+            isPatrolForward = false;
+        }
+        else if (!isPatrolForward)
+        {
+            pathfinder = new AStar(grid, end, start);
+            route = pathfinder.createRoute(grid, pathfinder, end, start);
+            isPatrolForward = true;
+        }
+        routePos = route.First;
+        distance = 1.2f;
+        drawGrid(grid, pathfinder, route);
+        
+    }
+
     void guard()
     {
 
@@ -98,7 +136,7 @@ public class Enemy_Controller : MonoBehaviour
 
         Location start = new Location((int)this.transform.position.x, (int)this.transform.position.z);
         Location destination = new Location((int)playerPos.x, (int)playerPos.z);
-        AStar pathfinder = new AStar(grid, start, destination);
+        pathfinder = new AStar(grid, start, destination);
         route = pathfinder.createRoute(grid, pathfinder, start, destination);
         routePos = route.First;
 
@@ -198,27 +236,7 @@ public class Enemy_Controller : MonoBehaviour
 
 
     //TEMP DEBUG
-    void drawBorder()
-    {
-        Transform wallPart;
-        
-        for (int i = 0; i < width+2; i++)
-        {
-            //bottom
-            wallPart = (Transform)Instantiate(wallNode, new Vector3(-1 + i, 0, -1), Quaternion.identity);
-            wallPart.transform.parent = this.transform.parent;
-
-            wallPart = (Transform)Instantiate(wallNode, new Vector3(-1 + i, 0, width), Quaternion.identity);
-            wallPart.transform.parent = this.transform.parent;
-
-            wallPart = (Transform)Instantiate(wallNode, new Vector3(-1, 0, -1 + i), Quaternion.identity);
-            wallPart.transform.parent = this.transform.parent;
-
-            wallPart = (Transform)Instantiate(wallNode, new Vector3(height + 1, 0, -1 + i), Quaternion.identity);
-            wallPart.transform.parent = this.transform.parent;
-
-        }
-    }
+    
 
     void drawGrid(SqaureGrid grid, AStar astar, LinkedList<Location> route)
     {

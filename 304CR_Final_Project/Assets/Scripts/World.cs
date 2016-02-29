@@ -5,12 +5,16 @@ using System.Collections.Generic;
 public class World : MonoBehaviour
 {
     public int width, height;
+    public Transform wallNode;
     public SqaureGrid grid;
     public List<Vector2> walls;
     public List<Vector2> forests;
     public List<Vector2> roads;
+
+
     void Start()
     {
+        drawBorder();
         grid = new SqaureGrid(width, height);
     }
 
@@ -19,6 +23,15 @@ public class World : MonoBehaviour
         foreach (Vector2 wall in walls)
         {
             grid.walls.Add(new Location((int)wall.x, (int)wall.y));
+        }
+        GameObject[] worldWalls = GameObject.FindGameObjectsWithTag(Tags.Wall);
+        foreach(GameObject wall in worldWalls)
+        {
+            int newX, newZ;
+            newX = Mathf.FloorToInt(wall.transform.position.x);
+            newZ = Mathf.FloorToInt(wall.transform.position.z);
+            Location newWallPos = new Location(newX, newZ);
+            grid.walls.Add(newWallPos);
         }
     }
 
@@ -43,6 +56,32 @@ public class World : MonoBehaviour
             {
                 grid.roads.Add(new Location((int)road.x, (int)road.y));
             }
+        }
+    }
+
+    void drawBorder()
+    {
+        Transform wallPart;
+
+        for (int i = 0; i < width + 2; i++)
+        {
+            //bottom
+            wallPart = (Transform)Instantiate(wallNode, new Vector3(-1 + i, 0.43f, -1), Quaternion.identity);
+            wallPart.transform.parent = this.transform;
+            wallPart.tag = "Untagged";
+
+            wallPart = (Transform)Instantiate(wallNode, new Vector3(-1 + i, 0.43f, width), Quaternion.identity);
+            wallPart.transform.parent = this.transform;
+            wallPart.tag = "Untagged";
+
+            wallPart = (Transform)Instantiate(wallNode, new Vector3(-1, 0.43f, -1 + i), Quaternion.identity);
+            wallPart.transform.parent = this.transform;
+            wallPart.tag = "Untagged";
+
+            wallPart = (Transform)Instantiate(wallNode, new Vector3(height + 1, 0.43f, -1 + i), Quaternion.identity);
+            wallPart.transform.parent = this.transform;
+            wallPart.tag = "Untagged";
+
         }
     }
 }
