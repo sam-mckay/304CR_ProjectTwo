@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class Enemy_Controller : MonoBehaviour
 {
     //TEMP DEBUG
+    
     public Transform pathNode;
     public Transform wallNode;
     //A* vars
@@ -117,6 +118,7 @@ public class Enemy_Controller : MonoBehaviour
             route = pathfinder.createRoute(grid, pathfinder, end, start);
             isPatrolForward = true;
         }
+        //route = pathfinder.optimiseRoute(grid, pathfinder, route);
         routePos = route.First;
         distance = 1.2f;
         drawGrid(grid, pathfinder, route);
@@ -136,8 +138,14 @@ public class Enemy_Controller : MonoBehaviour
 
         Location start = new Location((int)this.transform.position.x, (int)this.transform.position.z);
         Location destination = new Location((int)playerPos.x, (int)playerPos.z);
+        if (!isValidDestination(destination))
+        {
+            status = 0;
+            return;
+        }
         pathfinder = new AStar(grid, start, destination);
         route = pathfinder.createRoute(grid, pathfinder, start, destination);
+        //route = pathfinder.optimiseRoute(grid, pathfinder, route);
         routePos = route.First;
 
         task = 2;
@@ -145,6 +153,19 @@ public class Enemy_Controller : MonoBehaviour
         isDone = false;
 
         drawGrid(grid, pathfinder, route);
+    }
+
+    bool isValidDestination(Location destination)
+    {
+        if (destination.x < 0 || destination.y < 0 || destination.x > width || destination.y > height)
+        {
+            return false;
+        }
+        else if(grid.walls.Contains(destination))
+        {
+            return false;
+        }
+        return true;
     }
 
     public void takeDamage(int damage)
@@ -159,6 +180,16 @@ public class Enemy_Controller : MonoBehaviour
     void playerSpotted()
     {
         Debug.Log("PLAYER_SPOTTED");
+        if (status != 1)
+        {
+            status = 1;//alert
+            chase();
+        }
+    }
+
+    public void playerheard()
+    {
+        Debug.Log("PLAYER_HEARD");
         if (status != 1)
         {
             status = 1;//alert

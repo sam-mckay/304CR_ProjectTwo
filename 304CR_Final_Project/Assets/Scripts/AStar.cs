@@ -175,4 +175,59 @@ public class AStar : MonoBehaviour
         }
         return path;
     }
+
+    public LinkedList<Location> optimiseRoute(SqaureGrid grid, AStar astar, LinkedList<Location> path)
+    {
+        LinkedList<Location> optimisedPath = new LinkedList<Location>();
+
+        LinkedListNode<Location> currentNode = path.First;
+        bool isNodeRemoved = true;
+        while(currentNode != path.Last)
+        {
+            LinkedListNode<Location> nextNode = currentNode.Next;
+            if (nextNode != null)
+            {
+                if (!grid.forests.Contains(currentNode.Value) && isInLineOfSight(currentNode.Value, nextNode.Value))
+                {
+                    path.Remove(nextNode);
+                    Debug.Log("REMOVING NODE");
+                    isNodeRemoved = true;
+                }
+                if (!isNodeRemoved)
+                {
+                    currentNode = currentNode.Next;
+                    isNodeRemoved = false;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+        return optimisedPath;
+    }
+
+    bool isInLineOfSight(Location currentNode, Location nextNode)
+    {
+        Ray LOS = new Ray();
+        LOS.origin = new Vector3(currentNode.x + (currentNode.x / 2.0f), 0, currentNode.y + (currentNode.y / 2.0f));
+        LOS.direction = new Vector3(nextNode.x, 0, nextNode.y) - new Vector3(currentNode.x, 0, currentNode.y);
+        float playerDistance = Vector3.Distance(new Vector3(currentNode.x, 0, currentNode.y), new Vector3(nextNode.x, 0, nextNode.y));
+        RaycastHit hit;
+        if (Physics.Raycast(LOS, out hit, playerDistance))
+        {
+            Debug.Log("HIT! " + hit.collider.name);
+            Debug.DrawLine(LOS.origin, hit.point, Color.red, 1.0f, false);
+            if (hit.collider.tag == "Wall")
+            {
+                Debug.Log("HIT WALL");
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        return true;
+    }
 }
