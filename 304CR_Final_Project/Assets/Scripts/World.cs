@@ -35,6 +35,10 @@ public class World : MonoBehaviour
             newZ = Mathf.FloorToInt(wall.transform.position.z);
             Location newWallPos = new Location(newX, newZ);
             grid.walls.Add(newWallPos);
+            if(wall.name == "Cover")
+            {
+                Debug.Log("COVER POS: " + wall.transform.position);
+            }
         }
     }
 

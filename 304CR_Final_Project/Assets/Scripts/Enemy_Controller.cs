@@ -36,7 +36,7 @@ public class Enemy_Controller : MonoBehaviour
     void Start ()
     {
         status = 0;
-        
+        health = 100;
         player = GameObject.FindGameObjectWithTag(Tags.Player);
         world = GameObject.FindGameObjectWithTag(Tags.World);
         grid = world.gameObject.GetComponent<World>().grid;
@@ -168,12 +168,12 @@ public class Enemy_Controller : MonoBehaviour
         return true;
     }
 
-    public void takeDamage(int damage)
+    public void takeDamage(float damage)
     {
         health -= damage;
         if(health<0)
         {
-            Destroy(this);
+            Destroy(this.gameObject);
         }
     }
 
@@ -291,8 +291,8 @@ public class Enemy_Controller : MonoBehaviour
                 else if (grid.walls.Contains(currentLocation))
                 {
                     //show wall at current pos
-                    Transform wallPart = (Transform)Instantiate(wallNode, new Vector3(x, 0, y), Quaternion.identity);
-                    wallPart.parent = this.transform.parent;
+                    //Transform wallPart = (Transform)Instantiate(wallNode, new Vector3(x, 0, y), Quaternion.identity);
+                    //wallPart.parent = this.transform.parent;
                 }
             }
         }

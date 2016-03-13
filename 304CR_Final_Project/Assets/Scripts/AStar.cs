@@ -40,6 +40,7 @@ public class SqaureGrid : WeightedGraph<Location>
     public HashSet<Location> walls = new HashSet<Location>();
     public HashSet<Location> forests = new HashSet<Location>();
     public HashSet<Location> roads = new HashSet<Location>();
+    public HashSet<Location> cover = new HashSet<Location>();
 
     //construtor for map grid
     public SqaureGrid(int w, int h)
