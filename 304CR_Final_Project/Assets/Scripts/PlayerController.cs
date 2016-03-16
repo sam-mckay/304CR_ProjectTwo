@@ -74,22 +74,24 @@ public class PlayerController : MonoBehaviour
 
     void fire()
     {
-        Ray ray = camera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        Ray ray = camera.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0.0f));
+        ray.origin += transform.forward;
         RaycastHit hit;
         Physics.Raycast(ray, out hit, range);
         fireBullet(ray, hit);
 
         if(hit.collider.tag == Tags.Enemy)
         {
-            hit.collider.GetComponent<Enemy_Controller>().takeDamage(damage);
+            //hit.collider.GetComponent<Enemy_Controller>().takeDamage(damage);
         }
-        Debug.DrawLine(ray.origin, hit.point, Color.red, 1.0f, false);
+        Debug.DrawLine(ray.origin, hit.point, Color.red, 10.0f, false);
     }
 
     void fireBullet(Ray ray, RaycastHit hit)
     {
-        GameObject newBullet = (GameObject) Instantiate(bullet, ray.origin, this.transform.rotation);
-        Bullet newBulletScript = new Bullet(10, 10, 10);
+        Camera playerCamera = this.transform.FindChild("FirstPersonCharacter").GetComponent<Camera>();
+        GameObject newBullet = (GameObject) Instantiate(bullet, ray.origin, playerCamera.transform.rotation);
+        newBullet.GetComponent<Bullet>().initBullet(range, damage, 1.0f);
         
     }
 }

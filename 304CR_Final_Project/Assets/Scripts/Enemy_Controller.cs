@@ -36,7 +36,7 @@ public class Enemy_Controller : MonoBehaviour
     void Start ()
     {
         status = 0;
-        health = 100;
+        health = 10;
         player = GameObject.FindGameObjectWithTag(Tags.Player);
         world = GameObject.FindGameObjectWithTag(Tags.World);
         grid = world.gameObject.GetComponent<World>().grid;
@@ -121,7 +121,7 @@ public class Enemy_Controller : MonoBehaviour
         //route = pathfinder.optimiseRoute(grid, pathfinder, route);
         routePos = route.First;
         distance = 1.2f;
-        drawGrid(grid, pathfinder, route);
+        //drawGrid(grid, pathfinder, route);
         
     }
 
@@ -152,7 +152,7 @@ public class Enemy_Controller : MonoBehaviour
         distance = 1.2f;
         isDone = false;
 
-        drawGrid(grid, pathfinder, route);
+        //drawGrid(grid, pathfinder, route);
     }
 
     bool isValidDestination(Location destination)
