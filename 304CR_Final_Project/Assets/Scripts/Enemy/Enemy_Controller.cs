@@ -63,6 +63,10 @@ public class Enemy_Controller : MonoBehaviour
 
     void FixedUpdate()
     {
+        //shiny new state machine here:
+        
+
+        //old fake terrible "state" machine below
         if ((task == 2 || task ==0) && !isDone)
         {
             distance += speed * Time.deltaTime;
