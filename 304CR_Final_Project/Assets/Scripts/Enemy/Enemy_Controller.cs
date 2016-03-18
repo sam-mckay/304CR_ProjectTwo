@@ -30,8 +30,20 @@ public class Enemy_Controller : MonoBehaviour
     public int task; //0=patrolling, 1=guarding, 2=chasing, 3=attacking, 4=fleeing
     static float weaponRange;
     public float speed;
+
+    //
+    public Transform[] patrolPoints;
     public Vector2 VECpatrolStart, VECpatrolEnd;
     Location patrolStart, patrolEnd;
+
+    //AI State Machine
+    [HideInInspector] public IEnemyState currentState;
+    [HideInInspector] public ChaseState chaseState;
+    [HideInInspector] public AttackState attackState;
+    [HideInInspector] public FleeState fleeState;
+    [HideInInspector] public PatrolState patrolState;
+    [HideInInspector] public GuardState guardState;
+    [HideInInspector] public SearchState searchState;
     // Use this for initialization
     void Start ()
     {
@@ -49,24 +61,36 @@ public class Enemy_Controller : MonoBehaviour
         patrolStart = new Location((int)VECpatrolStart.x, (int)VECpatrolStart.y);
         patrolEnd = new Location((int)VECpatrolEnd.x, (int)VECpatrolEnd.y);
 
+        /*
         if (task == 0)
         {
             patrol(patrolStart, patrolEnd);
-        }
+        }*/
+
+        //set states
+        chaseState = new ChaseState(this);
+        attackState = new AttackState(this);
+        fleeState = new FleeState(this);
+        patrolState = new PatrolState(this);
+        guardState = new GuardState(this);
+        searchState = new SearchState(this);
+
+        currentState = patrolState;
     }
 	
 	// Update is called once per frame
 	void Update ()
     {
-       
+        
 	}
 
     void FixedUpdate()
     {
         //shiny new state machine here:
-        
+        currentState.updateState();
 
         //old fake terrible "state" machine below
+        /*
         if ((task == 2 || task ==0) && !isDone)
         {
             distance += speed * Time.deltaTime;
@@ -86,6 +110,7 @@ public class Enemy_Controller : MonoBehaviour
             patrol(patrolStart,patrolEnd);
             isDone = false;
         }
+        */
     }
 
     void Move()
