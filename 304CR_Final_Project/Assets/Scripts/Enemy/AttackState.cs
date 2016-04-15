@@ -1,52 +1,95 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 
-public class AttackState : IEnemyState
+public class AttackState : EnemyState
 {
-    private readonly Enemy_Controller enemy;
+    bool inCover;
+    float fireRateTimer;
 
-    public AttackState(Enemy_Controller enemyController)
+    public AttackState(Enemy_Controller enemyController) : base(enemyController)
     {
         enemy = enemyController;
+        inCover = true; // set to true until cover mechanic implemented and the default to false
+        fireRateTimer = 0;
+        
     }
 
-    public void updateState()
+    public override void updateState()
     {
-
+        Debug.Log("ATTACKING");
+        UpdateTimers();
+        //find cover
+        //return fire
+        attack();
+        if (enemy.health < 25.0f)
+        {
+            Debug.Log("FLEEING");
+            toFleeState();
+        }
     }
 
-    public void onTriggerEnter(Collider other)
+    void UpdateTimers()
     {
-
+        fireRateTimer += Time.deltaTime;
     }
 
-    public void toPatrolState()
+    public override void toFleeState()
     {
-        Debug.Log("Cannot Transition to this state");
+        enemy.fleeState.flee();
+        enemy.currentState = enemy.fleeState;
     }
 
-    public void toGuardState()
+    public override void toChaseState()
     {
-        Debug.Log("Cannot Transition to this state");
+        enemy.currentState = enemy.chaseState;
     }
 
-    public void toSearchState()
+    public override void toSearchState()
     {
-        Debug.Log("Cannot Transition to this state");
+        enemy.currentState = enemy.searchState;
     }
 
-    public void toAttackState()
+    void attack()
     {
-        Debug.Log("Cannot Transition to this state");
+        //if target in range
+            //fire
+        //else chase
+        if(Vector3.Distance(player.transform.position, enemy.transform.position) < enemy.weaponRange)
+        {
+            if (fireRateTimer >= 0.5f)
+            {
+                Debug.Log("SHOOTING");
+                fire();
+                fireRateTimer = 0;
+            }
+        }
+        else if(isInLineOfSight())
+        {
+            toChaseState();
+        }
+        else
+        {
+            toSearchState();
+        }
+    }
+    
+    
+    void fire()
+    {
+        //ray point at player add small rand val
+        Ray ray = new Ray();
+        ray.origin = enemy.transform.position + enemy.transform.forward + new Vector3(0,1,0);
+        ray.direction = player.transform.position - (enemy.transform.position + enemy.transform.forward);
+        RaycastHit hit;
+        Physics.Raycast(ray, out hit, enemy.weaponRange);
+        enemy.fireBullet(ray, hit);
+        Debug.DrawLine(ray.origin, hit.point, Color.blue, 10.0f, false);
     }
 
-    public void toChaseState()
+    public override void attacked()
     {
-        Debug.Log("Cannot Transition to this state");
+        
     }
 
-    public void toFleeState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
 }

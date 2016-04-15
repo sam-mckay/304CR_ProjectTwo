@@ -1,52 +1,97 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
-public class ChaseState : IEnemyState
+public class ChaseState : EnemyState
 {
-    private readonly Enemy_Controller enemy;
+    bool isDone;
 
-    public ChaseState(Enemy_Controller enemyController)
+    public ChaseState(Enemy_Controller enemyController) : base(enemyController)
     {
         enemy = enemyController;
+        grid = GameObject.FindGameObjectWithTag(Tags.World).GetComponent<World>().grid;
+        player = GameObject.FindGameObjectWithTag(Tags.Player);
+        previousPos = enemy.transform.position;
+        isDone = true;
     }
 
-    public void updateState()
+    public override void updateState()
     {
-
+        if (isDone)
+        {
+            chase();
+        }
+        //Debug.Log("PLAYER DIST: "+Vector3.Distance(player.transform.position, enemy.transform.position));
+        if (Vector3.Distance(player.transform.position, enemy.transform.position) < 10 && isInLineOfSight())
+        {
+            toAttackState();
+        }
+        distance += speed * Time.deltaTime;
+        move();
+    }
+    
+    public override void toPatrolState()
+    {
+        enemy.patrolState.patrol();
+        enemy.currentState = enemy.patrolState;
     }
 
-    public void onTriggerEnter(Collider other)
+    public override void toChaseState()
     {
-
+        enemy.currentState = enemy.chaseState;
+        isDone = true;
     }
 
-    public void toPatrolState()
+    public override void toAttackState()
     {
-        Debug.Log("Cannot Transition to this state");
+        enemy.currentState = enemy.attackState;
     }
 
-    public void toGuardState()
+    public override void move()
     {
-        Debug.Log("Cannot Transition to this state");
+        //Debug.Log("ROUTE POS X" + routePos.Value.x);
+        Vector3 targetPos = new Vector3(routePos.Value.x, enemy.transform.position.y, routePos.Value.y);
+        Vector3 velocity = Vector3.zero;
+
+        enemy.transform.position = Vector3.Lerp(previousPos, targetPos, distance);
+        enemy.transform.LookAt(targetPos);
+        if (distance >= 1)
+        {
+            if (routePos == route.Last)
+            {
+                //check if player visible
+                if(isInLineOfSight())
+                {
+                    toChaseState();
+                }
+                toPatrolState();
+            }
+            routePos = routePos.Next;
+            distance = 0;
+            previousPos = targetPos;
+        }
     }
 
-    public void toSearchState()
+    void chase()
     {
-        Debug.Log("Cannot Transition to this state");
-    }
+        Vector3 playerPos = player.transform.position;
+        playerPos.x = Mathf.FloorToInt(playerPos.x);
+        playerPos.z = Mathf.FloorToInt(playerPos.z);
+        previousPos.x = Mathf.FloorToInt(enemy.transform.position.x);
+        previousPos.z = Mathf.FloorToInt(enemy.transform.position.z);
 
-    public void toAttackState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
+        Location start = new Location((int)enemy.transform.position.x, (int)enemy.transform.position.z);
+        Location destination = new Location((int)playerPos.x, (int)playerPos.z);
+        if (!enemy.isValidDestination(destination))
+        {
+            return;
+        }
+        pathfinder = new AStar(grid, start, destination);
+        route = pathfinder.createRoute(grid, pathfinder, start, destination);
+        //route = pathfinder.optimiseRoute(grid, pathfinder, route);
+        routePos = route.First.Next;
 
-    public void toChaseState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
-
-    public void toFleeState()
-    {
-        Debug.Log("Cannot Transition to this state");
+        distance = 0;
+        isDone = false;
     }
 }

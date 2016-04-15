@@ -9,6 +9,7 @@ public interface WeightedGraph<L>
     IEnumerable<Location> Neighbours(Location currentLocation);
 }
 
+[System.Serializable]//useful
 public struct Location
 {
     public readonly int x;

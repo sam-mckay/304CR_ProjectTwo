@@ -60,6 +60,12 @@ public class Bullet : MonoBehaviour
                 Destroy(this.gameObject);
             }
         }
+        else if (other.tag == Tags.Player && other.GetType().ToString() != "UnityEngine.SphereCollider")
+        {
+            Debug.Log("HIT! Player");
+            other.gameObject.GetComponent<PlayerController>().takeDamage(damage);
+            Destroy(this.gameObject);
+        }
         else
         {
             Debug.Log("HIT PLAYER");

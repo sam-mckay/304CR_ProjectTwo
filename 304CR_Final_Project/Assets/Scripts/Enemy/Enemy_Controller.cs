@@ -8,6 +8,7 @@ public class Enemy_Controller : MonoBehaviour
     
     public Transform pathNode;
     public Transform wallNode;
+    public GameObject bullet;
     //A* vars
     GameObject player;
     GameObject world;
@@ -25,19 +26,21 @@ public class Enemy_Controller : MonoBehaviour
     float spottingTimer;
     //AI Attributes
     int ID;
-    float health;
+    public float health;
     int status; //0=normal, 1=alert, 2=combat
     public int task; //0=patrolling, 1=guarding, 2=chasing, 3=attacking, 4=fleeing
-    static float weaponRange;
+    public float weaponRange;
+    public float damage;
     public float speed;
 
     //
     public Transform[] patrolPoints;
     public Vector2 VECpatrolStart, VECpatrolEnd;
-    Location patrolStart, patrolEnd;
+    
+    public Location patrolStart, patrolEnd;
 
     //AI State Machine
-    [HideInInspector] public IEnemyState currentState;
+    [HideInInspector] public EnemyState currentState;
     [HideInInspector] public ChaseState chaseState;
     [HideInInspector] public AttackState attackState;
     [HideInInspector] public FleeState fleeState;
@@ -48,7 +51,7 @@ public class Enemy_Controller : MonoBehaviour
     void Start ()
     {
         status = 0;
-        health = 10;
+        
         player = GameObject.FindGameObjectWithTag(Tags.Player);
         world = GameObject.FindGameObjectWithTag(Tags.World);
         grid = world.gameObject.GetComponent<World>().grid;
@@ -56,6 +59,8 @@ public class Enemy_Controller : MonoBehaviour
         height = world.GetComponent<World>().height;
         
         isDone = false;
+        weaponRange = 8;
+        damage = 10;
 
         //convert vector to location
         patrolStart = new Location((int)VECpatrolStart.x, (int)VECpatrolStart.y);
@@ -68,6 +73,7 @@ public class Enemy_Controller : MonoBehaviour
         }*/
 
         //set states
+        currentState = new EnemyState(this);
         chaseState = new ChaseState(this);
         attackState = new AttackState(this);
         fleeState = new FleeState(this);
@@ -88,29 +94,15 @@ public class Enemy_Controller : MonoBehaviour
     {
         //shiny new state machine here:
         currentState.updateState();
+    }
 
-        //old fake terrible "state" machine below
-        /*
-        if ((task == 2 || task ==0) && !isDone)
-        {
-            distance += speed * Time.deltaTime;
-            Move();
-        }
-        else if(task == 2 && isInLineOfSight())
-        {
-            chase();
-        }
-        else if(task == 2)
-        {
-            task = 1;
-            status = 0;
-        }
-        else if(task == 0 && isDone)
-        {
-            patrol(patrolStart,patrolEnd);
-            isDone = false;
-        }
-        */
+    public void fireBullet(Ray ray, RaycastHit hit)
+    {
+        Debug.Log("ENEMY: FIRED BULLET");
+        Vector3 fixedAxisDir = ray.direction;
+        fixedAxisDir.y = 0;
+        GameObject newBullet = (GameObject)Instantiate(bullet, ray.origin, Quaternion.LookRotation(fixedAxisDir));
+        newBullet.GetComponent<Bullet>().initBullet(weaponRange, damage, 0.1f);
     }
 
     void Move()
@@ -184,7 +176,7 @@ public class Enemy_Controller : MonoBehaviour
         //drawGrid(grid, pathfinder, route);
     }
 
-    bool isValidDestination(Location destination)
+    public bool isValidDestination(Location destination)
     {
         if (destination.x < 0 || destination.y < 0 || destination.x > width || destination.y > height)
         {
@@ -197,10 +189,12 @@ public class Enemy_Controller : MonoBehaviour
         return true;
     }
 
-    public void takeDamage(float damage)
+    public void takeDamage(float hitDamage)
     {
-        health -= damage;
-        if(health<0)
+        currentState.attacked();
+        health -= hitDamage;
+        Debug.Log("ENEMY: TOOK DAMAGE: " + hitDamage + " CURRENT HEALTH: " + health);
+        if (health < 0.0f)
         {
             Destroy(this.gameObject);
         }
@@ -218,12 +212,7 @@ public class Enemy_Controller : MonoBehaviour
 
     public void playerheard()
     {
-        Debug.Log("PLAYER_HEARD");
-        if (status != 1)
-        {
-            status = 1;//alert
-            chase();
-        }
+        currentState.playerheard();
     }
 
     bool isInLineOfSight()
@@ -235,11 +224,11 @@ public class Enemy_Controller : MonoBehaviour
         RaycastHit hit;
         if(Physics.Raycast(LOS, out hit, playerDistance))
         {
-            Debug.Log("HIT! "+hit.collider.name);
+            //Debug.Log("HIT! "+hit.collider.name);
             Debug.DrawLine(LOS.origin, hit.point, Color.red,1.0f,false);
             if(hit.collider.tag != "Player")
             {
-                Debug.Log("HIT OTHER OBJECT");
+                //Debug.Log("HIT OTHER OBJECT");
                 return false;
             }
             else
@@ -253,48 +242,24 @@ public class Enemy_Controller : MonoBehaviour
     void resetTimer()
     {
         spottingTimer = 0.0f;
-        Debug.Log("TIMER RESET");
+        //Debug.Log("TIMER RESET");
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if(other == player.GetComponent<Collider>())
-        {
-            resetTimer();
-        }   
+        currentState.OnTriggerEnter(other);  
     }
 
     void OnTriggerStay(Collider other)
     {
-        //update timer as long as player is in view
-        if(other == player.GetComponent<Collider>() && isInLineOfSight())
-        {
-            Debug.Log("IN LOS");
-            
-            spottingTimer += Time.deltaTime;
-            if (spottingTimer >= 2.0f)
-            {
-                playerSpotted();
-            }
-        }
-        else if(other == player.GetComponent<Collider>())
-        {
-            resetTimer();
-        }
+        currentState.OnTriggerStay(other);
     }
 
     void OnTriggerExit(Collider other)
     {
-        if(other == player.GetComponent<Collider>())
-        {
-            resetTimer();
-        }
+        currentState.OnTriggerExit(other);
     }
-
-
-
-
-
+    
     //TEMP DEBUG
     
 

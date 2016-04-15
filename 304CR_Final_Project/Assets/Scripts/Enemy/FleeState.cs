@@ -1,52 +1,59 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class FleeState : IEnemyState
+public class FleeState : EnemyState
 {
-    private readonly Enemy_Controller enemy;
-
-    public FleeState(Enemy_Controller enemyController)
+    
+    public FleeState(Enemy_Controller enemyController) : base(enemyController)
     {
         enemy = enemyController;
     }
 
-    public void updateState()
+    public override void updateState()
     {
-
+        distance += speed * Time.deltaTime;
+        move();
     }
 
-    public void onTriggerEnter(Collider other)
+    public void flee()
     {
+        int startX, startY, endX, endY;
+        startX = Mathf.FloorToInt(enemy.transform.position.x);
+        startY = Mathf.FloorToInt(enemy.transform.position.z);
 
+        endX = 17; //17,18
+        endY = 18; // middle of base // Hard code for now
+        Location start = new Location(startX, startY);
+        Location end = new Location(endX, endY);
+        //set route
+        pathfinder = new AStar(grid, start, end);
+        route = pathfinder.createRoute(grid, pathfinder, start, end);
+        routePos = route.First.Next;
+        distance = 0;
+
+        previousPos = enemy.transform.position;
     }
 
-    public void toPatrolState()
+    public override void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Cannot Transition to this state");
+        if(other.tag == Tags.Health)
+        {
+            enemy.health = 100;
+        }
     }
 
-    public void toGuardState()
+    public override void OnTriggerExit(Collider other)
     {
-        Debug.Log("Cannot Transition to this state");
+        
     }
 
-    public void toSearchState()
+    public override void OnTriggerStay(Collider other)
     {
-        Debug.Log("Cannot Transition to this state");
+        
     }
 
-    public void toAttackState()
+    public override void playerheard()
     {
-        Debug.Log("Cannot Transition to this state");
-    }
 
-    public void toChaseState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
-
-    public void toFleeState()
-    {
-        Debug.Log("Cannot Transition to this state");
     }
 }
