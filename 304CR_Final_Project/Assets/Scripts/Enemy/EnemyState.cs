@@ -14,7 +14,6 @@ public class EnemyState
     public LinkedListNode<Location> routePos;
     public Vector3 previousPos;
     public float distance = 0;
-    public float speed = 1;
     public float spottingTimer;
 
     public EnemyState(Enemy_Controller enemyController)
@@ -165,6 +164,8 @@ public class EnemyState
     {
         toChaseState();
     }
+
+    /**/
 
     //triggers
     public virtual void OnTriggerEnter(Collider other)

@@ -17,14 +17,13 @@ public class AttackState : EnemyState
 
     public override void updateState()
     {
-        Debug.Log("ATTACKING");
+        //Debug.Log("ATTACKING");
         UpdateTimers();
         //find cover
         //return fire
         attack();
         if (enemy.health < 25.0f)
         {
-            Debug.Log("FLEEING");
             toFleeState();
         }
     }
@@ -59,7 +58,7 @@ public class AttackState : EnemyState
         {
             if (fireRateTimer >= 0.5f)
             {
-                Debug.Log("SHOOTING");
+                //Debug.Log("SHOOTING");
                 fire();
                 fireRateTimer = 0;
             }

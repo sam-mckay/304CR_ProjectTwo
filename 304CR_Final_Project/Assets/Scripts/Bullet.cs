@@ -40,19 +40,19 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("HIT! " + other.GetType());
+        //Debug.Log("HIT! " + other.GetType());
         if (other.tag != Tags.Player && other.GetType().ToString() != "UnityEngine.SphereCollider")
         {
-            Debug.Log("HIT OBJECT");
+            //Debug.Log("HIT OBJECT");
             if (other.tag == Tags.Enemy && other.GetType().ToString() != "UnityEngine.SphereCollider")
             {
-                Debug.Log("HIT! ENEMY");
+                //Debug.Log("HIT! ENEMY");
                 other.gameObject.GetComponent<Enemy_Controller>().takeDamage(damage);
                 Destroy(this.gameObject);
             }
             else if (other.GetType().ToString() == "UnityEngine.SphereCollider")
             {
-                Debug.Log("HIT! ENEMY FOV COLLIDER");
+               // Debug.Log("HIT! ENEMY FOV COLLIDER");
                 return;
             }
             else
@@ -62,13 +62,13 @@ public class Bullet : MonoBehaviour
         }
         else if (other.tag == Tags.Player && other.GetType().ToString() != "UnityEngine.SphereCollider")
         {
-            Debug.Log("HIT! Player");
+            //Debug.Log("HIT! Player");
             other.gameObject.GetComponent<PlayerController>().takeDamage(damage);
             Destroy(this.gameObject);
         }
         else
         {
-            Debug.Log("HIT PLAYER");
+            //Debug.Log("HIT PLAYER");
         }
     }
 }

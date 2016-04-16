@@ -12,18 +12,12 @@ public class Enemy_Controller : MonoBehaviour
     //A* vars
     GameObject player;
     GameObject world;
-    SqaureGrid grid;
-    AStar pathfinder;
-    LinkedList<Location> route;
-    LinkedListNode<Location> routePos;
-    Vector3 previousPos;
-    float distance = 0;
+    public SqaureGrid grid;
     bool isDone;
     int width, height;
 
     bool isPatrolForward=true;
-
-    float spottingTimer;
+    
     //AI Attributes
     int ID;
     public float health;
@@ -53,7 +47,7 @@ public class Enemy_Controller : MonoBehaviour
         
         player = GameObject.FindGameObjectWithTag(Tags.Player);
         world = GameObject.FindGameObjectWithTag(Tags.World);
-        grid = world.gameObject.GetComponent<World>().grid;
+        grid = GameObject.FindGameObjectWithTag(Tags.World).GetComponent<World>().grid;
         width = world.GetComponent<World>().width;
         height = world.GetComponent<World>().height;
         
@@ -90,7 +84,6 @@ public class Enemy_Controller : MonoBehaviour
         {
             currentState = patrolState;
         }
-        currentState = attackState;
     }
 	
 	// Update is called once per frame
@@ -107,31 +100,20 @@ public class Enemy_Controller : MonoBehaviour
 
     public void fireBullet(Ray ray, RaycastHit hit)
     {
-        Debug.Log("ENEMY: FIRED BULLET");
+        //Debug.Log("ENEMY: FIRED BULLET");
         Vector3 fixedAxisDir = ray.direction;
         fixedAxisDir.y = 0;
         GameObject newBullet = (GameObject)Instantiate(bullet, ray.origin, Quaternion.LookRotation(fixedAxisDir));
         newBullet.GetComponent<Bullet>().initBullet(weaponRange, damage, 0.1f);
     }
 
-    public bool isValidDestination(Location destination)
-    {
-        if (destination.x < 0 || destination.y < 0 || destination.x > width || destination.y > height)
-        {
-            return false;
-        }
-        else if(grid.walls.Contains(destination))
-        {
-            return false;
-        }
-        return true;
-    }
+    
 
     public void takeDamage(float hitDamage)
     {
         currentState.attacked();
         health -= hitDamage;
-        Debug.Log("ENEMY: TOOK DAMAGE: " + hitDamage + " CURRENT HEALTH: " + health);
+        //Debug.Log("ENEMY: TOOK DAMAGE: " + hitDamage + " CURRENT HEALTH: " + health);
         if (health < 0.0f)
         {
             Destroy(this.gameObject);
@@ -167,10 +149,17 @@ public class Enemy_Controller : MonoBehaviour
         return false;
     }
 
-    void resetTimer()
+    public bool isValidDestination(Location destination)
     {
-        spottingTimer = 0.0f;
-        //Debug.Log("TIMER RESET");
+        if (destination.x < 0 || destination.y < 0 || destination.x > width || destination.y > height)
+        {
+            return false;
+        }
+        else if (grid.walls.Contains(destination))
+        {
+            return false;
+        }
+        return true;
     }
 
     void OnTriggerEnter(Collider other)

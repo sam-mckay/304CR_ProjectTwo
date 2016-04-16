@@ -11,11 +11,11 @@ public class GuardState : EnemyState
 
     public override void updateState()
     {
-        Debug.Log("GUARDING");
+        //Debug.Log("GUARDING");
         if(distance < 1)
         {
             //Debug.Log("MOVING");
-            distance += speed * Time.deltaTime;
+            distance += enemy.speed * Time.deltaTime;
             move();
         }
         else
@@ -36,8 +36,8 @@ public class GuardState : EnemyState
         Location start = new Location(startX, startY);
         Location end = new Location(endX, endY);
         //
-        Debug.Log("START X,Y: " + startX + "," + startY);
-        Debug.Log("END X,Y: " + endX + "," + endY);
+        //Debug.Log("START X,Y: " + startX + "," + startY);
+        //Debug.Log("END X,Y: " + endX + "," + endY);
         //set route
         pathfinder = new AStar(grid, start, end);
         route = pathfinder.createRoute(grid, pathfinder, start, end);

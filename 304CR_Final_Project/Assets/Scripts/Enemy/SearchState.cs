@@ -15,7 +15,7 @@ public class SearchState : EnemyState
     public override void updateState()
     {
         Vector3 angle = enemy.transform.rotation.eulerAngles;
-        Debug.Log("SEARCHING: "+ angle.y);
+        //Debug.Log("SEARCHING: "+ angle.y);
         angle.y = angle.y + rotationAmount * Time.deltaTime;
         enemy.transform.eulerAngles = angle;
         if (angle.y >= 360.0f)

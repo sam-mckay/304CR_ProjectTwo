@@ -9,11 +9,9 @@ public class PatrolState : EnemyState
     
     public PatrolState(Enemy_Controller enemyController) : base(enemyController)
     {
-        grid = GameObject.FindGameObjectWithTag(Tags.World).GetComponent<World>().grid;
-        player = GameObject.FindGameObjectWithTag(Tags.Player);
         enemy = enemyController;
         nextPatrolPoint = 1;
-        if (enemy.patrolPoints.Length != 0)
+        if (enemy.patrolPoints.Length > 0)
         {
             patrol();
         }
@@ -22,8 +20,8 @@ public class PatrolState : EnemyState
 
     public override void updateState()
     {
-        Debug.Log("PATROLLING");
-        distance += speed * Time.deltaTime;
+        //Debug.Log("PATROLLING");
+        distance += enemy.speed * Time.deltaTime;
         move();
     }
         

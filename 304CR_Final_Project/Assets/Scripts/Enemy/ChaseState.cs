@@ -17,7 +17,7 @@ public class ChaseState : EnemyState
 
     public override void updateState()
     {
-        Debug.Log("CHASING");
+        //Debug.Log("CHASING");
         if (isDone)
         {
             chase();
@@ -27,7 +27,7 @@ public class ChaseState : EnemyState
         {
             toAttackState();
         }
-        distance += speed * Time.deltaTime;
+        distance += enemy.speed * Time.deltaTime;
         move();
     }
     
@@ -65,7 +65,15 @@ public class ChaseState : EnemyState
                 {
                     toChaseState();
                 }
-                toPatrolState();
+                if (enemy.patrolPoints.Length > 0)
+                {
+                    patrol();
+                }
+                else
+                {
+                    enemy.guardState.moveToGuardPoint();
+                    enemy.currentState = enemy.guardState;
+                }
             }
             routePos = routePos.Next;
             distance = 0;

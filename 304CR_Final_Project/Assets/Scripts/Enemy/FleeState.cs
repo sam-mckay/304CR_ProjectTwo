@@ -11,7 +11,8 @@ public class FleeState : EnemyState
 
     public override void updateState()
     {
-        distance += speed * Time.deltaTime;
+        //Debug.Log("FLEEING");
+        distance += enemy.speed * Time.deltaTime;
         move();
     }
 
