@@ -8,7 +8,7 @@ public class Enemy_Controller : MonoBehaviour
     
     public Transform pathNode;
     public Transform wallNode;
-    public GameObject bullet;
+    
     //A* vars
     GameObject player;
     GameObject world;
@@ -17,7 +17,7 @@ public class Enemy_Controller : MonoBehaviour
     int width, height;
 
     bool isPatrolForward=true;
-    
+    public GameObject bullet;
     //AI Attributes
     int ID;
     public float health;
