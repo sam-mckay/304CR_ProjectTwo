@@ -13,12 +13,16 @@ public class PatrolState : EnemyState
         player = GameObject.FindGameObjectWithTag(Tags.Player);
         enemy = enemyController;
         nextPatrolPoint = 1;
-        patrol();
+        if (enemy.patrolPoints.Length != 0)
+        {
+            patrol();
+        }
         previousPos = enemy.transform.position;
     }
 
     public override void updateState()
     {
+        Debug.Log("PATROLLING");
         distance += speed * Time.deltaTime;
         move();
     }

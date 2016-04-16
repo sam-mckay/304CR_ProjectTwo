@@ -75,11 +75,22 @@ public class EnemyState
                 {
                     nextPatrolPoint = 0;
                 }
-                patrol();
+                if (enemy.patrolPoints.Length > 0)
+                {
+                    patrol();
+                }
+                else
+                {
+                    enemy.guardState.moveToGuardPoint();
+                    enemy.currentState = enemy.guardState;
+                }
             }
-            routePos = routePos.Next;
-            distance = 0;
-            previousPos = targetPos;
+            else
+            {
+                routePos = routePos.Next;
+                distance = 0;
+                previousPos = targetPos;
+            }
         }
     }
 
@@ -140,6 +151,7 @@ public class EnemyState
         pathfinder = new AStar(grid, start, end);
         route = pathfinder.createRoute(grid, pathfinder, start, end);
         routePos = route.First.Next;
+        previousPos = enemy.transform.position;
         distance = 0;
         //Debug.Log("ROUTE CREATED: " + route.Count);
     }

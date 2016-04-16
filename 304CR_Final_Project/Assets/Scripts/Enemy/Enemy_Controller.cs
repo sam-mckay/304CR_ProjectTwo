@@ -32,12 +32,11 @@ public class Enemy_Controller : MonoBehaviour
     public float weaponRange;
     public float damage;
     public float speed;
-
+    
     //
     public Transform[] patrolPoints;
-    public Vector2 VECpatrolStart, VECpatrolEnd;
-    
-    public Location patrolStart, patrolEnd;
+    [HideInInspector] public Vector3 guardPosition;
+    [HideInInspector] public Quaternion guardRotation;
 
     //AI State Machine
     [HideInInspector] public EnemyState currentState;
@@ -61,10 +60,8 @@ public class Enemy_Controller : MonoBehaviour
         isDone = false;
         weaponRange = 8;
         damage = 10;
-
-        //convert vector to location
-        patrolStart = new Location((int)VECpatrolStart.x, (int)VECpatrolStart.y);
-        patrolEnd = new Location((int)VECpatrolEnd.x, (int)VECpatrolEnd.y);
+        
+        
 
         /*
         if (task == 0)
@@ -81,7 +78,19 @@ public class Enemy_Controller : MonoBehaviour
         guardState = new GuardState(this);
         searchState = new SearchState(this);
 
-        currentState = patrolState;
+        
+
+        if (patrolPoints.Length == 0)
+        {
+            guardPosition = new Vector3(Mathf.FloorToInt(transform.position.x),0, Mathf.FloorToInt(transform.position.z));
+            guardRotation = this.transform.rotation;
+            currentState = guardState;
+        }
+        else
+        {
+            currentState = patrolState;
+        }
+        currentState = attackState;
     }
 	
 	// Update is called once per frame
@@ -105,77 +114,6 @@ public class Enemy_Controller : MonoBehaviour
         newBullet.GetComponent<Bullet>().initBullet(weaponRange, damage, 0.1f);
     }
 
-    void Move()
-    {
-        Vector3 targetPos = new Vector3(routePos.Value.x, transform.position.y, routePos.Value.y);
-        Vector3 velocity = Vector3.zero;
-
-        transform.position = Vector3.Lerp(previousPos, targetPos, distance);
-        transform.LookAt(targetPos);
-        if (distance >= 1)
-        {
-            if(routePos == route.Last)
-            {
-                isDone = true;
-            }
-            routePos = routePos.Next;
-            distance = 0;
-            previousPos = targetPos;
-        }
-    }
-
-    void patrol(Location start, Location end)
-    {
-        task = 0;
-        if (isPatrolForward)
-        {
-            pathfinder = new AStar(grid, start, end);
-            route = pathfinder.createRoute(grid, pathfinder, start, end);
-            isPatrolForward = false;
-        }
-        else if (!isPatrolForward)
-        {
-            pathfinder = new AStar(grid, end, start);
-            route = pathfinder.createRoute(grid, pathfinder, end, start);
-            isPatrolForward = true;
-        }
-        //route = pathfinder.optimiseRoute(grid, pathfinder, route);
-        routePos = route.First;
-        distance = 1.2f;
-        //drawGrid(grid, pathfinder, route);
-        
-    }
-
-    void guard()
-    {
-
-    }
-
-    void chase()
-    {
-        Vector3 playerPos = player.transform.position;
-        playerPos.x = Mathf.FloorToInt(playerPos.x);
-        playerPos.z = Mathf.FloorToInt(playerPos.z);
-
-        Location start = new Location((int)this.transform.position.x, (int)this.transform.position.z);
-        Location destination = new Location((int)playerPos.x, (int)playerPos.z);
-        if (!isValidDestination(destination))
-        {
-            status = 0;
-            return;
-        }
-        pathfinder = new AStar(grid, start, destination);
-        route = pathfinder.createRoute(grid, pathfinder, start, destination);
-        //route = pathfinder.optimiseRoute(grid, pathfinder, route);
-        routePos = route.First;
-
-        task = 2;
-        distance = 1.2f;
-        isDone = false;
-
-        //drawGrid(grid, pathfinder, route);
-    }
-
     public bool isValidDestination(Location destination)
     {
         if (destination.x < 0 || destination.y < 0 || destination.x > width || destination.y > height)
@@ -197,16 +135,6 @@ public class Enemy_Controller : MonoBehaviour
         if (health < 0.0f)
         {
             Destroy(this.gameObject);
-        }
-    }
-
-    void playerSpotted()
-    {
-        Debug.Log("PLAYER_SPOTTED");
-        if (status != 1)
-        {
-            status = 1;//alert
-            chase();
         }
     }
 

@@ -17,6 +17,7 @@ public class ChaseState : EnemyState
 
     public override void updateState()
     {
+        Debug.Log("CHASING");
         if (isDone)
         {
             chase();
