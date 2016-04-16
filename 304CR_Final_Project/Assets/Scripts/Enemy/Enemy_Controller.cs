@@ -8,197 +8,121 @@ public class Enemy_Controller : MonoBehaviour
     
     public Transform pathNode;
     public Transform wallNode;
+    public GameObject bullet;
     //A* vars
     GameObject player;
     GameObject world;
-    SqaureGrid grid;
-    AStar pathfinder;
-    LinkedList<Location> route;
-    LinkedListNode<Location> routePos;
-    Vector3 previousPos;
-    float distance = 0;
+    public SqaureGrid grid;
     bool isDone;
     int width, height;
 
     bool isPatrolForward=true;
-
-    float spottingTimer;
+    
     //AI Attributes
     int ID;
-    float health;
+    public float health;
     int status; //0=normal, 1=alert, 2=combat
     public int task; //0=patrolling, 1=guarding, 2=chasing, 3=attacking, 4=fleeing
-    static float weaponRange;
+    public float weaponRange;
+    public float damage;
     public float speed;
-    public Vector2 VECpatrolStart, VECpatrolEnd;
-    Location patrolStart, patrolEnd;
+    
+    //
+    public Transform[] patrolPoints;
+    [HideInInspector] public Vector3 guardPosition;
+    [HideInInspector] public Quaternion guardRotation;
+
+    //AI State Machine
+    [HideInInspector] public EnemyState currentState;
+    [HideInInspector] public ChaseState chaseState;
+    [HideInInspector] public AttackState attackState;
+    [HideInInspector] public FleeState fleeState;
+    [HideInInspector] public PatrolState patrolState;
+    [HideInInspector] public GuardState guardState;
+    [HideInInspector] public SearchState searchState;
     // Use this for initialization
     void Start ()
     {
         status = 0;
-        health = 10;
+        
         player = GameObject.FindGameObjectWithTag(Tags.Player);
         world = GameObject.FindGameObjectWithTag(Tags.World);
-        grid = world.gameObject.GetComponent<World>().grid;
+        grid = GameObject.FindGameObjectWithTag(Tags.World).GetComponent<World>().grid;
         width = world.GetComponent<World>().width;
         height = world.GetComponent<World>().height;
         
         isDone = false;
+        weaponRange = 8;
+        damage = 10;
+        
+        
 
-        //convert vector to location
-        patrolStart = new Location((int)VECpatrolStart.x, (int)VECpatrolStart.y);
-        patrolEnd = new Location((int)VECpatrolEnd.x, (int)VECpatrolEnd.y);
-
+        /*
         if (task == 0)
         {
             patrol(patrolStart, patrolEnd);
+        }*/
+
+        //set states
+        currentState = new EnemyState(this);
+        chaseState = new ChaseState(this);
+        attackState = new AttackState(this);
+        fleeState = new FleeState(this);
+        patrolState = new PatrolState(this);
+        guardState = new GuardState(this);
+        searchState = new SearchState(this);
+
+        
+
+        if (patrolPoints.Length == 0)
+        {
+            guardPosition = new Vector3(Mathf.FloorToInt(transform.position.x),0, Mathf.FloorToInt(transform.position.z));
+            guardRotation = this.transform.rotation;
+            currentState = guardState;
+        }
+        else
+        {
+            currentState = patrolState;
         }
     }
 	
 	// Update is called once per frame
 	void Update ()
     {
-       
+        
 	}
 
     void FixedUpdate()
     {
         //shiny new state machine here:
-        
-
-        //old fake terrible "state" machine below
-        if ((task == 2 || task ==0) && !isDone)
-        {
-            distance += speed * Time.deltaTime;
-            Move();
-        }
-        else if(task == 2 && isInLineOfSight())
-        {
-            chase();
-        }
-        else if(task == 2)
-        {
-            task = 1;
-            status = 0;
-        }
-        else if(task == 0 && isDone)
-        {
-            patrol(patrolStart,patrolEnd);
-            isDone = false;
-        }
+        currentState.updateState();
     }
 
-    void Move()
+    public void fireBullet(Ray ray, RaycastHit hit)
     {
-        Vector3 targetPos = new Vector3(routePos.Value.x, transform.position.y, routePos.Value.y);
-        Vector3 velocity = Vector3.zero;
-
-        transform.position = Vector3.Lerp(previousPos, targetPos, distance);
-        transform.LookAt(targetPos);
-        if (distance >= 1)
-        {
-            if(routePos == route.Last)
-            {
-                isDone = true;
-            }
-            routePos = routePos.Next;
-            distance = 0;
-            previousPos = targetPos;
-        }
+        //Debug.Log("ENEMY: FIRED BULLET");
+        Vector3 fixedAxisDir = ray.direction;
+        fixedAxisDir.y = 0;
+        GameObject newBullet = (GameObject)Instantiate(bullet, ray.origin, Quaternion.LookRotation(fixedAxisDir));
+        newBullet.GetComponent<Bullet>().initBullet(weaponRange, damage, 0.1f);
     }
 
-    void patrol(Location start, Location end)
+    
+
+    public void takeDamage(float hitDamage)
     {
-        task = 0;
-        if (isPatrolForward)
-        {
-            pathfinder = new AStar(grid, start, end);
-            route = pathfinder.createRoute(grid, pathfinder, start, end);
-            isPatrolForward = false;
-        }
-        else if (!isPatrolForward)
-        {
-            pathfinder = new AStar(grid, end, start);
-            route = pathfinder.createRoute(grid, pathfinder, end, start);
-            isPatrolForward = true;
-        }
-        //route = pathfinder.optimiseRoute(grid, pathfinder, route);
-        routePos = route.First;
-        distance = 1.2f;
-        //drawGrid(grid, pathfinder, route);
-        
-    }
-
-    void guard()
-    {
-
-    }
-
-    void chase()
-    {
-        Vector3 playerPos = player.transform.position;
-        playerPos.x = Mathf.FloorToInt(playerPos.x);
-        playerPos.z = Mathf.FloorToInt(playerPos.z);
-
-        Location start = new Location((int)this.transform.position.x, (int)this.transform.position.z);
-        Location destination = new Location((int)playerPos.x, (int)playerPos.z);
-        if (!isValidDestination(destination))
-        {
-            status = 0;
-            return;
-        }
-        pathfinder = new AStar(grid, start, destination);
-        route = pathfinder.createRoute(grid, pathfinder, start, destination);
-        //route = pathfinder.optimiseRoute(grid, pathfinder, route);
-        routePos = route.First;
-
-        task = 2;
-        distance = 1.2f;
-        isDone = false;
-
-        //drawGrid(grid, pathfinder, route);
-    }
-
-    bool isValidDestination(Location destination)
-    {
-        if (destination.x < 0 || destination.y < 0 || destination.x > width || destination.y > height)
-        {
-            return false;
-        }
-        else if(grid.walls.Contains(destination))
-        {
-            return false;
-        }
-        return true;
-    }
-
-    public void takeDamage(float damage)
-    {
-        health -= damage;
-        if(health<0)
+        currentState.attacked();
+        health -= hitDamage;
+        //Debug.Log("ENEMY: TOOK DAMAGE: " + hitDamage + " CURRENT HEALTH: " + health);
+        if (health < 0.0f)
         {
             Destroy(this.gameObject);
         }
     }
 
-    void playerSpotted()
-    {
-        Debug.Log("PLAYER_SPOTTED");
-        if (status != 1)
-        {
-            status = 1;//alert
-            chase();
-        }
-    }
-
     public void playerheard()
     {
-        Debug.Log("PLAYER_HEARD");
-        if (status != 1)
-        {
-            status = 1;//alert
-            chase();
-        }
+        currentState.playerheard();
     }
 
     bool isInLineOfSight()
@@ -210,11 +134,11 @@ public class Enemy_Controller : MonoBehaviour
         RaycastHit hit;
         if(Physics.Raycast(LOS, out hit, playerDistance))
         {
-            Debug.Log("HIT! "+hit.collider.name);
+            //Debug.Log("HIT! "+hit.collider.name);
             Debug.DrawLine(LOS.origin, hit.point, Color.red,1.0f,false);
             if(hit.collider.tag != "Player")
             {
-                Debug.Log("HIT OTHER OBJECT");
+                //Debug.Log("HIT OTHER OBJECT");
                 return false;
             }
             else
@@ -225,51 +149,34 @@ public class Enemy_Controller : MonoBehaviour
         return false;
     }
 
-    void resetTimer()
+    public bool isValidDestination(Location destination)
     {
-        spottingTimer = 0.0f;
-        Debug.Log("TIMER RESET");
+        if (destination.x < 0 || destination.y < 0 || destination.x > width || destination.y > height)
+        {
+            return false;
+        }
+        else if (grid.walls.Contains(destination))
+        {
+            return false;
+        }
+        return true;
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if(other == player.GetComponent<Collider>())
-        {
-            resetTimer();
-        }   
+        currentState.OnTriggerEnter(other);  
     }
 
     void OnTriggerStay(Collider other)
     {
-        //update timer as long as player is in view
-        if(other == player.GetComponent<Collider>() && isInLineOfSight())
-        {
-            Debug.Log("IN LOS");
-            
-            spottingTimer += Time.deltaTime;
-            if (spottingTimer >= 2.0f)
-            {
-                playerSpotted();
-            }
-        }
-        else if(other == player.GetComponent<Collider>())
-        {
-            resetTimer();
-        }
+        currentState.OnTriggerStay(other);
     }
 
     void OnTriggerExit(Collider other)
     {
-        if(other == player.GetComponent<Collider>())
-        {
-            resetTimer();
-        }
+        currentState.OnTriggerExit(other);
     }
-
-
-
-
-
+    
     //TEMP DEBUG
     
 

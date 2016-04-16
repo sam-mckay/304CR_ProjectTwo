@@ -1,47 +1,32 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
-public class PatrolState : IEnemyState
+public class PatrolState : EnemyState
 {
-    private readonly Enemy_Controller enemy;
-
-    public void updateState()
+    //private Enemy_Controller enemy;
+    //GameObject player;
+    
+    public PatrolState(Enemy_Controller enemyController) : base(enemyController)
     {
-
+        enemy = enemyController;
+        nextPatrolPoint = 1;
+        if (enemy.patrolPoints.Length > 0)
+        {
+            patrol();
+        }
+        previousPos = enemy.transform.position;
     }
 
-    public void onTriggerEnter(Collider other)
+    public override void updateState()
     {
-
+        //Debug.Log("PATROLLING");
+        distance += enemy.speed * Time.deltaTime;
+        move();
     }
-
-    public void toPatrolState()
+        
+    public override void toChaseState()
     {
-        Debug.Log("Cannot Transition to this state");
-    }
-
-    public void toGuardState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
-
-    public void toSearchState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
-
-    public void toAttackState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
-
-    public void toChaseState()
-    {
-        Debug.Log("Cannot Transition to this state");
-    }
-
-    public void toFleeState()
-    {
-        Debug.Log("Cannot Transition to this state");
+        enemy.currentState = enemy.chaseState;
     }
 }

@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     public GameObject bullet;
     public float range;
     public float damage;
+    public float health;
 
     UnityStandardAssets.Characters.FirstPerson.FirstPersonController movementScript;
     bool isWalking;
@@ -63,6 +64,17 @@ public class PlayerController : MonoBehaviour
             soundSphere.radius = runSize;
         }
 	}
+
+    public void takeDamage(float hitDamage)
+    {
+        health -= hitDamage;
+        Debug.Log("PLAYER TAKING DAMAGE");
+        if(health <= 0.0f)
+        {
+            Debug.Log("PLAYER DEAD");
+            //end game
+        }
+    }
 
     void OnTriggerEnter(Collider other)
     {

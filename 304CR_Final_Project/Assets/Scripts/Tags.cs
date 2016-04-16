@@ -9,4 +9,5 @@ public class Tags : MonoBehaviour
     public static string Wall = "Wall";
     public static string Enemy = "Enemy";
     public static string Cover = "Cover";
+    public static string Health = "HealthTrigger";
 }
