@@ -21,6 +21,7 @@ public class EnemyState
         enemy = enemyController;
         grid = GameObject.FindGameObjectWithTag(Tags.World).GetComponent<World>().grid;
         player = GameObject.FindGameObjectWithTag(Tags.Player);
+        route = new LinkedList<Location>();
     }
 
     public virtual void updateState() { }
@@ -93,9 +94,27 @@ public class EnemyState
         }
     }
 
+    public void newRoute(Location newLocationTarget)
+    {
+        int startX, startY;
+        startX = Mathf.FloorToInt(enemy.transform.position.x);
+        startY = Mathf.FloorToInt(enemy.transform.position.z);
+        
+        Location start = new Location(startX, startY);
+        Location end = newLocationTarget;
+        //set route
+        pathfinder = new AStar(grid, start, end);
+        route = pathfinder.createRoute(grid, pathfinder, start, end);
+        routePos = route.First.Next;
+        distance = 0;
+
+        previousPos = enemy.transform.position;
+    }
+
     public virtual void attacked()
     {
         enemy.transform.rotation = Quaternion.LookRotation(player.transform.position - enemy.transform.position);
+        GameObject.FindGameObjectWithTag(Tags.World).GetComponent<Enemy_GroupController>().enemyAttacked(enemy.gameObject);
         toAttackState();
     }
 

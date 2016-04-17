@@ -12,7 +12,7 @@ public class GuardState : EnemyState
     public override void updateState()
     {
         //Debug.Log("GUARDING");
-        if(distance < 1)
+        if(distance < 1 && route.Count > 0)
         {
             //Debug.Log("MOVING");
             distance += enemy.speed * Time.deltaTime;

@@ -37,7 +37,9 @@ public class FleeState : EnemyState
 
     public override void OnTriggerEnter(Collider other)
     {
-        if(other.tag == Tags.Health)
+        float test = Vector3.Distance(other.transform.position, enemy.transform.position);
+        Debug.Log("HEALTH TEST: " + test);
+        if (other.tag == Tags.Health && Vector3.Distance(other.transform.position, enemy.transform.position) < 2)
         {
             enemy.health = 100;
         }

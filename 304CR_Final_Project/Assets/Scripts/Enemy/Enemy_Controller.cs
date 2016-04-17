@@ -113,7 +113,7 @@ public class Enemy_Controller : MonoBehaviour
     {
         currentState.attacked();
         health -= hitDamage;
-        //Debug.Log("ENEMY: TOOK DAMAGE: " + hitDamage + " CURRENT HEALTH: " + health);
+        Debug.Log("ENEMY: TOOK DAMAGE: " + hitDamage + " CURRENT HEALTH: " + health);
         if (health < 0.0f)
         {
             Destroy(this.gameObject);
