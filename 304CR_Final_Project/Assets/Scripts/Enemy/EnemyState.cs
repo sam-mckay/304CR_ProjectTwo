@@ -103,9 +103,9 @@ public class EnemyState
         Location start = new Location(startX, startY);
         Location end = newLocationTarget;
         //set route
-        pathfinder = new AStar(grid, start, end);
-        route = pathfinder.createRoute(grid, pathfinder, start, end);
-        routePos = route.First.Next;
+        enemy.currentState.pathfinder = new AStar(grid, start, end);
+        enemy.currentState.route = pathfinder.createRoute(grid, pathfinder, start, end);
+        enemy.currentState.routePos = route.First.Next;
         distance = 0;
 
         previousPos = enemy.transform.position;
