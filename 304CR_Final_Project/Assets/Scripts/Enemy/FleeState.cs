@@ -14,6 +14,8 @@ public class FleeState : EnemyState
         //Debug.Log("FLEEING");
         distance += enemy.speed * Time.deltaTime;
         move();
+
+        
     }
 
     public void flee()
@@ -31,7 +33,7 @@ public class FleeState : EnemyState
         route = pathfinder.createRoute(grid, pathfinder, start, end);
         routePos = route.First.Next;
         distance = 0;
-
+        
         previousPos = enemy.transform.position;
     }
 
@@ -42,6 +44,7 @@ public class FleeState : EnemyState
         if (other.tag == Tags.Health && Vector3.Distance(other.transform.position, enemy.transform.position) < 2)
         {
             enemy.health = 100;
+            GameObject.FindGameObjectWithTag(Tags.World).GetComponent<World>().healthTriggerReset(other.gameObject);
         }
     }
 
@@ -59,4 +62,5 @@ public class FleeState : EnemyState
     {
 
     }
+
 }

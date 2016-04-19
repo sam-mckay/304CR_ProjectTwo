@@ -105,6 +105,10 @@ public class EnemyState
         //set route
         enemy.currentState.pathfinder = new AStar(grid, start, end);
         enemy.currentState.route = pathfinder.createRoute(grid, pathfinder, start, end);
+        foreach (Location node in enemy.currentState.route)
+            Debug.Log("Node: " + node.x + ", " + node.y);
+
+        Debug.Log("Route");
         enemy.currentState.routePos = route.First.Next;
         distance = 0;
 

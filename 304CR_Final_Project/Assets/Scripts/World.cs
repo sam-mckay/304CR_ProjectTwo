@@ -91,4 +91,18 @@ public class World : MonoBehaviour
 
         }
     }
+
+
+
+    public void healthTriggerReset(GameObject healthTrigger)
+    {
+        healthTrigger.SetActive(false);
+        StartCoroutine(healthTriggerRespawn(healthTrigger));
+    }
+
+    IEnumerator healthTriggerRespawn(GameObject healthTrigger)
+    {
+        yield return new WaitForSeconds(5);
+        healthTrigger.SetActive(true);
+    }
 }
